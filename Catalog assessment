@@ -1,0 +1,150 @@
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+public class ShamirSecretSharing {
+
+    public static void main(String[] args) {
+        
+        System.out.println("Results for Case 1:");
+        Map<String, Object> dataCase1 = new HashMap<>();
+        Map<String, Integer> keysCase1 = new HashMap<>();
+        keysCase1.put("n", 4);
+        keysCase1.put("k", 3);
+        dataCase1.put("keys", keysCase1);
+
+        Map<String, String> point1Case1 = new HashMap<>();
+        point1Case1.put("base", "10");
+        point1Case1.put("value", "4");
+        dataCase1.put("1", point1Case1);
+
+        Map<String, String> point2Case1 = new HashMap<>();
+        point2Case1.put("base", "2");
+        point2Case1.put("value", "111");  // Binary (base 2) representation of 7
+        dataCase1.put("2", point2Case1);
+
+        Map<String, String> point3Case1 = new HashMap<>();
+        point3Case1.put("base", "10");
+        point3Case1.put("value", "12");
+        dataCase1.put("3", point3Case1);
+
+        Map<String, String> point4Case1 = new HashMap<>();
+        point4Case1.put("base", "4");
+        point4Case1.put("value", "213");  // Base 4 representation
+        dataCase1.put("6", point4Case1);
+
+        
+        calculateSecret(dataCase1);
+    
+
+        
+        System.out.println("\nResults for Case 2:");
+        Map<String, Object> dataCase2 = new HashMap<>();
+        Map<String, Integer> keysCase2 = new HashMap<>();
+        keysCase2.put("n", 10);
+        keysCase2.put("k", 7);
+        dataCase2.put("keys", keysCase2);
+
+        Map<String, String> point1Case2 = new HashMap<>();
+        point1Case2.put("base", "6");
+        point1Case2.put("value", "13444211440455345511");
+        dataCase2.put("1", point1Case2);
+
+        Map<String, String> point2Case2 = new HashMap<>();
+        point2Case2.put("base", "15");
+        point2Case2.put("value", "aed7015a346d63");
+        dataCase2.put("2", point2Case2);
+
+        Map<String, String> point3Case2 = new HashMap<>();
+        point3Case2.put("base", "15");
+        point3Case2.put("value", "6aeeb69631c227c");
+        dataCase2.put("3", point3Case2);
+
+        Map<String, String> point4Case2 = new HashMap<>();
+        point4Case2.put("base", "16");
+        point4Case2.put("value", "e1b5e05623d881f");
+        dataCase2.put("4", point4Case2);
+
+        Map<String, String> point5Case2 = new HashMap<>();
+        point5Case2.put("base", "8");
+        point5Case2.put("value", "316034514573652620673");
+        dataCase2.put("5", point5Case2);
+
+        Map<String, String> point6Case2 = new HashMap<>();
+        point6Case2.put("base", "3");
+        point6Case2.put("value", "2122212201122002221120200210011020220200");
+        dataCase2.put("6", point6Case2);
+
+        Map<String, String> point7Case2 = new HashMap<>();
+        point7Case2.put("base", "3");
+        point7Case2.put("value", "20120221122211000100210021102001201112121");
+        dataCase2.put("7", point7Case2);
+
+        Map<String, String> point8Case2 = new HashMap<>();
+        point8Case2.put("base", "6");
+        point8Case2.put("value", "20220554335330240002224253");
+        dataCase2.put("8", point8Case2);
+
+        Map<String, String> point9Case2 = new HashMap<>();
+        point9Case2.put("base", "12");
+        point9Case2.put("value", "45153788322a1255483");
+        dataCase2.put("9", point9Case2);
+
+        Map<String, String> point10Case2 = new HashMap<>();
+        point10Case2.put("base", "7");
+        point10Case2.put("value", "1101613130313526312514143");
+        dataCase2.put("10", point10Case2);
+
+        
+        calculateSecret(dataCase2);
+    }
+
+    public static void calculateSecret(Map<String, Object> data) {
+        int n = ((Map<String, Integer>) data.get("keys")).get("n");
+        int k = ((Map<String, Integer>) data.get("keys")).get("k");
+
+        
+        Map<Integer, BigInteger> points = new TreeMap<>();
+        for (String key : data.keySet()) {
+            if (!key.equals("keys")) {
+                int x = Integer.parseInt(key);
+                Map<String, String> root = (Map<String, String>) data.get(key);
+                int base = Integer.parseInt(root.get("base"));
+                String value = root.get("value");
+                BigInteger y = new BigInteger(value, base);
+                points.put(x, y);
+            }
+        }
+
+        // Select first k points for interpolation
+        List<Map.Entry<Integer, BigInteger>> selectedPoints = new ArrayList<>(points.entrySet()).subList(0, k);
+
+        
+        BigInteger secret = lagrangeInterpolation(selectedPoints, BigInteger.ZERO);
+        System.out.println("The secret (constant term c) is: " + secret);
+    }
+
+    public static BigInteger lagrangeInterpolation(List<Map.Entry<Integer, BigInteger>> points, BigInteger x) {
+        BigInteger result = BigInteger.ZERO;
+
+        for (int j = 0; j < points.size(); j++) {
+            BigInteger xj = BigInteger.valueOf(points.get(j).getKey());
+            BigInteger yj = points.get(j).getValue();
+
+            BigInteger term = yj;
+            for (int m = 0; m < points.size(); m++) {
+                if (m != j) {
+                    BigInteger xm = BigInteger.valueOf(points.get(m).getKey());
+                    term = term.multiply(x.subtract(xm)).divide(xj.subtract(xm));
+                }
+            }
+
+            result = result.add(term);
+        }
+
+        return result;
+    }
+}
